@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卖出收益计算器 - Apple风格</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <div class="layout">
+                <!-- 左侧输入区域 -->
+                <div class="input-section">
+                    <h2>Show me your money</h2>
+                    <div class="input-group">
+                        <label for="position">持仓数量</label>
+                        <input type="number" id="position" placeholder="请输入持仓数量" min="1" step="1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="costPrice">成本价（元）</label>
+                        <input type="number" id="costPrice" placeholder="请输入成本价格" min="0.01" step="0.01">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="initialPrice">初始卖出价格（元）</label>
+                        <input type="number" id="initialPrice" placeholder="请输入初始卖出价格" min="0.01" step="0.01">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="sellInterval">每次卖出间距（元）</label>
+                        <input type="number" id="sellInterval" placeholder="请输入卖出价格间距" min="0.01" step="0.01">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="sellAmount">每次卖出数量</label>
+                        <input type="number" id="sellAmount" placeholder="请输入每次卖出数量" min="1" step="1">
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateProfit()">计算收益</button>
+                </div>
+                
+                <!-- 右侧结果区域 -->
+                <div class="result-section">
+                    <h2>……</h2>
+                    <div class="result-card" id="resultCard">
+                        <h3>预计总收益</h3>
+                        <div class="total-profit" id="totalProfit">0.00</div>
+                        <div class="profit-percent" id="profitPercent">收益率: 0%</div>
+                    </div>
+                    
+                    <div class="details">
+                        <h4>卖出详情</h4>
+                        <div class="sell-steps" id="sellSteps">
+                            <div class="placeholder">填写左侧参数后点击"计算收益"按钮</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
