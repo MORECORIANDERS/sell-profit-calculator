@@ -3,64 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>卖出收益计算器 - Apple风格</title>
-    <link rel="stylesheet" href="style.css">
+    <title>卖出收益计算器</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/naive-ui@2.41.0/dist/styles/naive-ui.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/naive-ui@2.41.0/dist/index.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f7;
+            min-height: 100vh;
+        }
+        #app { padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        .layout { display: flex; gap: 32px; }
+        .left { flex: 0 0 380px; }
+        .right { flex: 1; min-width: 0; }
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #8B5CF6;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .result-box {
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .result-box h3 { font-size: 16px; opacity: 0.9; margin-bottom: 8px; }
+        .result-box .amount { font-size: 32px; font-weight: 700; }
+        .result-box .percent { font-size: 14px; opacity: 0.85; margin-top: 4px; }
+        .details-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #8B5CF6;
+            margin-bottom: 12px;
+        }
+        .placeholder {
+            color: #999;
+            text-align: center;
+            padding: 60px 0;
+        }
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; }
+            .left { flex: none; width: 100%; }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="calculator">
-            <div class="layout">
-                <!-- 左侧输入区域 -->
-                <div class="input-section">
-                    <h2>Show me your money</h2>
-                    <div class="input-group">
-                        <label for="position">持仓数量</label>
-                        <input type="number" id="position" placeholder="请输入持仓数量" min="1" step="1">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="costPrice">成本价（元）</label>
-                        <input type="number" id="costPrice" placeholder="请输入成本价格" min="0.01" step="0.01">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="initialPrice">初始卖出价格（元）</label>
-                        <input type="number" id="initialPrice" placeholder="请输入初始卖出价格" min="0.01" step="0.01">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="sellInterval">每次卖出间距（元）</label>
-                        <input type="number" id="sellInterval" placeholder="请输入卖出价格间距" min="0.01" step="0.01">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="sellAmount">每次卖出数量</label>
-                        <input type="number" id="sellAmount" placeholder="请输入每次卖出数量" min="1" step="1">
-                    </div>
-                    
-                    <button class="calculate-btn" onclick="calculateProfit()">计算收益</button>
+    <div id="app">
+        <div class="layout">
+            <div class="left card">
+                <h2>Show me your money</h2>
+                <n-form :model="form" :rules="rules" ref="formRef">
+                    <n-form-item label="持仓数量" path="position">
+                        <n-input-number v-model:value="form.position" placeholder="请输入持仓数量" :min="1" :step="1" style="width: 100%" />
+                    </n-form-item>
+                    <n-form-item label="成本价（元）" path="costPrice">
+                        <n-input-number v-model:value="form.costPrice" placeholder="请输入成本价格" :min="0.01" :step="0.01" style="width: 100%" />
+                    </n-form-item>
+                    <n-form-item label="初始卖出价格（元）" path="initialPrice">
+                        <n-input-number v-model:value="form.initialPrice" placeholder="请输入初始卖出价格" :min="0.01" :step="0.01" style="width: 100%" />
+                    </n-form-item>
+                    <n-form-item label="每次卖出间距（元）" path="sellInterval">
+                        <n-input-number v-model:value="form.sellInterval" placeholder="请输入卖出价格间距" :min="0.01" :step="0.01" style="width: 100%" />
+                    </n-form-item>
+                    <n-form-item label="每次卖出数量" path="sellAmount">
+                        <n-input-number v-model:value="form.sellAmount" placeholder="请输入每次卖出数量" :min="1" :step="1" style="width: 100%" />
+                    </n-form-item>
+                    <n-button type="primary" size="large" style="width: 100%; margin-top: 8px;" @click="handleCalculate" color="#8B5CF6">
+                        计算收益
+                    </n-button>
+                </n-form>
+            </div>
+
+            <div class="right card">
+                <h2>……</h2>
+                <div class="result-box">
+                    <h3>预计总收益</h3>
+                    <div class="amount">{{ totalProfit >= 0 ? '+' : '' }}{{ totalProfit.toFixed(2) }} 元</div>
+                    <div class="percent">收益率: {{ profitPercent }}%</div>
                 </div>
-                
-                <!-- 右侧结果区域 -->
-                <div class="result-section">
-                    <h2>……</h2>
-                    <div class="result-card" id="resultCard">
-                        <h3>预计总收益</h3>
-                        <div class="total-profit" id="totalProfit">0.00</div>
-                        <div class="profit-percent" id="profitPercent">收益率: 0%</div>
-                    </div>
-                    
-                    <div class="details">
-                        <h4>卖出详情</h4>
-                        <div class="sell-steps" id="sellSteps">
-                            <div class="placeholder">填写左侧参数后点击"计算收益"按钮</div>
-                        </div>
-                    </div>
+                <div class="details-title">卖出详情</div>
+                <n-data-table
+                    v-if="steps.length > 0"
+                    :columns="columns"
+                    :data="steps"
+                    :bordered="false"
+                    :single-line="false"
+                    size="small"
+                    max-height="400"
+                />
+                <div v-else class="placeholder">
+                    <n-empty description="填写左侧参数后点击计算" />
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const { createApp, ref, reactive } = Vue;
+        const { useMessage } = naive;
+
+        createApp({
+            setup() {
+                const message = useMessage();
+                const formRef = ref(null);
+                const totalProfit = ref(0);
+                const profitPercent = ref('0.00');
+                const steps = ref([]);
+
+                const form = reactive({
+                    position: null,
+                    costPrice: null,
+                    initialPrice: null,
+                    sellInterval: null,
+                    sellAmount: null
+                });
+
+                const rules = {
+                    position: { required: true, message: '请输入持仓数量', type: 'number' },
+                    costPrice: { required: true, message: '请输入成本价', type: 'number' },
+                    initialPrice: { required: true, message: '请输入初始卖出价格', type: 'number' },
+                    sellInterval: { required: true, message: '请输入卖出间距', type: 'number' },
+                    sellAmount: { required: true, message: '请输入每次卖出数量', type: 'number' }
+                };
+
+                const columns = [
+                    { title: '次数', key: 'step', width: 80 },
+                    { title: '卖出价格', key: 'price' },
+                    { title: '卖出数量', key: 'qty' },
+                    { title: '本次收益', key: 'revenue' },
+                    { title: '剩余持仓', key: 'remaining' }
+                ];
+
+                const handleCalculate = () => {
+                    formRef.value?.validate((errors) => {
+                        if (errors) {
+                            message.error('请填写所有必填字段');
+                            return;
+                        }
+                        if (form.sellAmount > form.position) {
+                            message.error('每次卖出数量不能超过持仓数量');
+                            return;
+                        }
+
+                        let currentPrice = form.initialPrice;
+                        let remaining = form.position;
+                        let totalRevenue = 0;
+                        const totalCost = form.position * form.costPrice;
+                        const result = [];
+                        let step = 1;
+
+                        while (remaining > 0) {
+                            const qty = Math.min(form.sellAmount, remaining);
+                            const revenue = qty * currentPrice;
+                            totalRevenue += revenue;
+                            remaining -= qty;
+
+                            result.push({
+                                step: `第${step}次`,
+                                price: currentPrice.toFixed(2) + ' 元',
+                                qty: qty + ' 股',
+                                revenue: revenue.toFixed(2) + ' 元',
+                                remaining: remaining + ' 股'
+                            });
+
+                            currentPrice += form.sellInterval;
+                            step++;
+                        }
+
+                        const profit = totalRevenue - totalCost;
+                        totalProfit.value = profit;
+                        profitPercent.value = ((profit / totalCost) * 100).toFixed(2);
+                        steps.value = result;
+                    });
+                };
+
+                return {
+                    formRef,
+                    form,
+                    rules,
+                    columns,
+                    totalProfit,
+                    profitPercent,
+                    steps,
+                    handleCalculate
+                };
+            }
+        }).use(naive).mount('#app');
+    </script>
 </body>
 </html>
